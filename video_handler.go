@@ -20,3 +20,9 @@ func get_duration(path string) float64 {
 	}
 	return duration
 }
+
+func get_target_bitrate(path string, target_size_mb float64) (target_bitrate_kbps int) {
+	audio_bitrate_kbps := 128
+	target_bitrate_kbps = int((target_size_mb*8192)/get_duration(path)) - audio_bitrate_kbps
+	return
+}

@@ -17,5 +17,6 @@ func main() {
 		fmt.Println("I see you want to open ", userArgs[0])
 	}
 	fmt.Println("With the size ", *sizeFlag)
-	fmt.Println("Duration is ", get_duration(userArgs[0]))
+	fmt.Println("Duration is", fmt.Sprintf("%.2f", get_duration(userArgs[0]))+"s")
+	fmt.Println("Target bitrate is", get_target_bitrate(userArgs[0], float64(*sizeFlag)))
 }

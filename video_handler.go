@@ -92,3 +92,65 @@ func get_target_bitrate(path string, target_size_mb float64) (target_bitrate_kbp
 	target_bitrate_kbps = int((target_size_mb*8192)/get_duration(path)) - audio_bitrate_kbps
 	return
 }
+
+func runFFmpegCompress(path, outputPath string, videoBitrateKbps int, audioBitrateKbps int, targetHeight int) error {
+	args := []string{
+		"-y",
+		"-i", path,
+	}
+
+	if targetHeight > 0 {
+		args = append(args, "-vf", fmt.Sprintf("scale=-2:%d", targetHeight))
+	}
+
+	videoBitrateStr := strconv.Itoa(videoBitrateKbps) + "k"
+	audioBitrateStr := strconv.Itoa(audioBitrateKbps) + "k"
+	bufsize := strconv.Itoa(videoBitrateKbps*2) + "k"
+
+	args = append(args,
+		"-c:v", "libx264",
+		"-preset", "medium",
+		"-b:v", videoBitrateStr,
+		"-maxrate", videoBitrateStr,
+		"-bufsize", bufsize,
+		"-c:a", "aac",
+		"-b:a", audioBitrateStr,
+		outputPath,
+	)
+
+	cmd := exec.Command("ffmpeg", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("ffmpeg failed: %w\n%s", err, output)
+	}
+	return nil
+}
+
+func CompressToSize(path, outputPath string, targetSizeMB float64) error {
+	info, err := GetVideoInfo(path)
+	if err != nil {
+		return fmt.Errorf("failed to read video info: %w", err)
+	}
+
+	audioBitrateKbps := 128
+	totalBitrateKbps := int((targetSizeMB * 8192) / info.Duration)
+	videoBitrateKbps := totalBitrateKbps - audioBitrateKbps
+
+	if videoBitrateKbps <= 0 {
+		return fmt.Errorf("target size %.2fMB is too small for a %.2fs video", targetSizeMB, info.Duration)
+	}
+
+	targetHeight, ok := pickResolution(info.Height, videoBitrateKbps)
+	if !ok {
+		fmt.Printf("warning: even at %dp, %dkbps is below recommended quality — result may look compressed\n", targetHeight, videoBitrateKbps)
+	}
+
+	// no scaling needed
+	scaleHeight := 0
+	if targetHeight != info.Height {
+		scaleHeight = targetHeight
+		fmt.Printf("downscaling %dp -> %dp to keep %dkbps looking reasonable\n", info.Height, targetHeight, videoBitrateKbps)
+	}
+
+	return runFFmpegCompress(path, outputPath, videoBitrateKbps, audioBitrateKbps, scaleHeight)
+}

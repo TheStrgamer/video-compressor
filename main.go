@@ -19,8 +19,6 @@ func main() {
 	fmt.Println("With the size ", *sizeFlag)
 	var name string = userArgs[0]
 	if name != "" {
-		fmt.Println("Duration is", fmt.Sprintf("%.2f", get_duration(name))+"s")
-		fmt.Println("Target bitrate is", get_target_bitrate(name, float64(*sizeFlag)))
 		info, err := GetVideoInfo(name)
 		if err == nil {
 			info.printInfo()
@@ -28,8 +26,6 @@ func main() {
 		out := strings.ReplaceAll(name, ".mp4", "_compressed.mp4")
 		if err := CompressToSize(name, out, float64(*sizeFlag)); err != nil {
 			fmt.Println("Compression failed:", err)
-		} else {
-			fmt.Println("Saved to out.mp4")
 		}
 	}
 }

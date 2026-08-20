@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 var sizeFlag = flag.Int("size", 10, "the size to reduce to")
@@ -24,7 +25,8 @@ func main() {
 		if err == nil {
 			info.printInfo()
 		}
-		if err := CompressToSize(name, "C:/Users/konra/Videos/out3.mp4", float64(*sizeFlag)); err != nil {
+		out := strings.ReplaceAll(name, ".mp4", "_compressed.mp4")
+		if err := CompressToSize(name, out, float64(*sizeFlag)); err != nil {
 			fmt.Println("Compression failed:", err)
 		} else {
 			fmt.Println("Saved to out.mp4")

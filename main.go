@@ -12,11 +12,17 @@ func main() {
 	// args := os.Args[1:]
 	userArgs := flag.Args()
 
-	fmt.Println("Hello bitch")
 	if len(userArgs) >= 1 {
 		fmt.Println("I see you want to open ", userArgs[0])
 	}
 	fmt.Println("With the size ", *sizeFlag)
-	fmt.Println("Duration is", fmt.Sprintf("%.2f", get_duration(userArgs[0]))+"s")
-	fmt.Println("Target bitrate is", get_target_bitrate(userArgs[0], float64(*sizeFlag)))
+	var name string = userArgs[0]
+	if name != "" {
+		fmt.Println("Duration is", fmt.Sprintf("%.2f", get_duration(name))+"s")
+		fmt.Println("Target bitrate is", get_target_bitrate(name, float64(*sizeFlag)))
+		info, err := GetVideoInfo(name)
+		if err == nil {
+			info.printInfo()
+		}
+	}
 }
